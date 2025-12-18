@@ -1,13 +1,13 @@
 
-import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { UserProfile, LessonContent, TaskResponse } from "../types";
 
 const MODEL_TEXT = 'gemini-3-flash-preview';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
 export const generateLesson = async (user: UserProfile, isExam: boolean = false): Promise<LessonContent> => {
-  // Use process.env.API_KEY directly as required
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Use process.env.API_KEY directly as required by instructions
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const prompt = `
     Generate an English lesson step for a student.
@@ -77,7 +77,7 @@ export const evaluateTask = async (
   lesson: LessonContent, 
   userAnswer: string
 ): Promise<TaskResponse> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const prompt = `
     Evaluate student's choice for: "${lesson.task.question}".
@@ -152,7 +152,7 @@ const decodeAudioData = async (
 
 export const speakText = async (text: string) => {
   if (!text) return;
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -184,6 +184,6 @@ export const speakText = async (text: string) => {
     source.connect(audioCtx.destination);
     source.start(0);
   } catch (e: any) {
-    console.warn("TTS error handled gracefully.");
+    console.warn("TTS xatosi boshqarildi.");
   }
 };

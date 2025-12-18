@@ -57,7 +57,7 @@ const Roadmap: React.FC<RoadmapProps> = ({ user, onNodeClick }) => {
       <div className="absolute top-0 bottom-0 left-1/2 w-2 bg-slate-200 -translate-x-1/2 rounded-full z-0 opacity-50" />
 
       {nodes.map((node, index) => {
-        // Evaluate logic outside JSX tags
+        // Evaluate logic outside JSX tags to prevent parser confusion
         const isCompleted = user.lessonsCompleted > index;
         const isActive = user.lessonsCompleted === index;
         const isLocked = index > user.lessonsCompleted;
