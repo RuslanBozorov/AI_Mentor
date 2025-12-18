@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [taskResponse, setTaskResponse] = useState<TaskResponse | null>(null);
-  const [assistantMsg, setAssistantMsg] = useState('Salom! Bugun nimani o\'rganamiz?');
+  const [assistantMsg, setAssistantMsg] = useState("Salom! Bugun nimani o'rganamiz?");
   const [currentNode, setCurrentNode] = useState<RoadmapNode | null>(null);
 
   const apiKey = process.env.API_KEY;
@@ -134,7 +134,15 @@ const App: React.FC = () => {
           </div>
           <h2 className="text-3xl font-black text-gray-900 leading-tight">Sozlash kerak!</h2>
           <div className="space-y-4 text-left">
-            <p className="text-gray-600 font-medium text-sm">Vercel Settings -> Environment Variables bo'limiga API_KEY qo'shing.</p>
+            <p className="text-gray-600 font-medium text-sm">
+              Vercel Settings {"->"} Environment Variables bo'limiga API_KEY qo'shing.
+            </p>
+            <div className="bg-slate-50 p-4 rounded-2xl text-[10px] font-mono text-slate-500 border border-slate-100">
+              1. Project Settings<br/>
+              2. Environment Variables<br/>
+              3. Key: API_KEY<br/>
+              4. Value: [Google AI Studio Key]
+            </div>
           </div>
         </div>
       </div>
@@ -208,7 +216,7 @@ const App: React.FC = () => {
         {lesson && (
           <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-500 max-w-2xl mx-auto">
              <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                <button onClick={() => {setLesson(null); setCurrentNode(null); setError(null);}} className="text-indigo-600 font-black hover:bg-indigo-50 px-4 py-2 rounded-2xl transition">← Chiqish</button>
+                <button onClick={() => {setLesson(null); setCurrentNode(null); setError(null);}} className="text-indigo-600 font-black hover:bg-indigo-50 px-4 py-2 rounded-2xl transition">{"←"} Chiqish</button>
                 <div className="flex-1 mx-6">
                    <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200 p-0.5">
                       <div className="h-full bg-indigo-600 transition-all duration-700 rounded-full" style={{width: `${(user.currentTaskIndex / TASKS_PER_LESSON) * 100}%`}} />
@@ -244,9 +252,9 @@ const App: React.FC = () => {
 
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-md bg-white/95 backdrop-blur-2xl border border-white/20 p-4 z-40 shadow-xl rounded-[40px] flex justify-around">
           {[
-            { id: 'roadmap', icon: Map, label: 'Yo\'l' },
+            { id: 'roadmap', icon: Map, label: "Yo'l" },
             { id: 'rank', icon: Trophy, label: 'Reyting' },
-            { id: 'shop', icon: ShoppingBag, label: 'Do\'kon' },
+            { id: 'shop', icon: ShoppingBag, label: "Do'kon" },
             { id: 'profile', icon: Settings, label: 'Profil' }
           ].map((item) => (
             <button 

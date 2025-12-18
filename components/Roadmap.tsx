@@ -31,18 +31,18 @@ const Roadmap: React.FC<RoadmapProps> = ({ user, onNodeClick }) => {
         ];
       case LearningGoal.VOCABULARY:
         return [
-          { id: 'v1', title: 'Eng muhim 100 so\'z', icon: '📚', type: 'lesson' },
+          { id: 'v1', title: "Eng muhim 100 so'z", icon: '📚', type: 'lesson' },
           { id: 'v2', title: 'Sifatlar', icon: '✨', type: 'lesson' },
-          { id: 'v3', title: 'Fe\'llar dunyosi', icon: '🏃', type: 'lesson' },
-          { id: 'v4', title: 'Xazina: Lug\'at to\'plami', icon: '🎁', type: 'treasure' },
+          { id: 'v3', title: "Fe'llar dunyosi", icon: '🏃', type: 'lesson' },
+          { id: 'v4', title: "Xazina: Lug'at to'plami", icon: '🎁', type: 'treasure' },
           { id: 'v5', title: 'Idiomalar', icon: '🧠', type: 'lesson' },
           { id: 'v_exam', title: 'Vocabulary Imtihoni', icon: '🎓', type: 'exam' },
         ];
       default:
         return [
-          { id: 'g1', title: 'Tobe fe\'li', icon: '🧩', type: 'lesson' },
+          { id: 'g1', title: "Tobe fe'li", icon: '🧩', type: 'lesson' },
           { id: 'g2', title: 'Hozirgi zamon', icon: '⏰', type: 'lesson' },
-          { id: 'g3', title: 'O\'tgan zamon', icon: '🔙', type: 'lesson' },
+          { id: 'g3', title: "O'tgan zamon", icon: '🔙', type: 'lesson' },
           { id: 'g4', title: 'Xazina: Grammar Cheat Sheet', icon: '🎁', type: 'treasure' },
           { id: 'g5', title: 'Kelasi zamon', icon: '🚀', type: 'lesson' },
           { id: 'g_exam', title: 'Grammar Imtihoni', icon: '🎓', type: 'exam' },
@@ -57,12 +57,11 @@ const Roadmap: React.FC<RoadmapProps> = ({ user, onNodeClick }) => {
       <div className="absolute top-0 bottom-0 left-1/2 w-2 bg-slate-200 -translate-x-1/2 rounded-full z-0 opacity-50" />
 
       {nodes.map((node, index) => {
-        // Explicitly wrapping comparisons in parentheses to avoid JSX parser confusion
         const isCompleted = (user.lessonsCompleted > index);
         const isActive = (user.lessonsCompleted === index);
         const isLocked = (index > user.lessonsCompleted);
 
-        const xOffset = index % 2 === 0 ? '-translate-x-12' : 'translate-x-12';
+        const xOffset = (index % 2 === 0) ? '-translate-x-12' : 'translate-x-12';
 
         return (
           <div key={node.id} className={`relative flex flex-col items-center z-10 ${xOffset} transition-all duration-500`}>
