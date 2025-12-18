@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserProfile, RoadmapNode, LearningGoal } from '../types';
-import { Lock, CheckCircle2, Star, Zap, GraduationCap, Sparkles } from 'lucide-react';
+import { Lock, CheckCircle2 } from 'lucide-react';
 
 interface RoadmapProps {
   user: UserProfile;
@@ -9,7 +9,6 @@ interface RoadmapProps {
 }
 
 const Roadmap: React.FC<RoadmapProps> = ({ user, onNodeClick }) => {
-  // Define Roadmap paths based on goal
   const getNodesForGoal = (goal: LearningGoal): RoadmapNode[] => {
     switch(goal) {
       case LearningGoal.SPEAKING:
@@ -55,15 +54,14 @@ const Roadmap: React.FC<RoadmapProps> = ({ user, onNodeClick }) => {
 
   return (
     <div className="flex flex-col items-center py-10 space-y-12 max-w-md mx-auto relative">
-      {/* Dynamic Background Path (Decorative) */}
       <div className="absolute top-0 bottom-0 left-1/2 w-2 bg-slate-200 -translate-x-1/2 rounded-full z-0 opacity-50" />
 
       {nodes.map((node, index) => {
-        const isCompleted = user.lessonsCompleted > index;
-        const isActive = user.lessonsCompleted === index;
-        const isLocked = user.lessonsCompleted < index;
+        // Explicitly wrapping comparisons in parentheses to avoid JSX parser confusion
+        const isCompleted = (user.lessonsCompleted > index);
+        const isActive = (user.lessonsCompleted === index);
+        const isLocked = (index > user.lessonsCompleted);
 
-        // Zig-zag offset
         const xOffset = index % 2 === 0 ? '-translate-x-12' : 'translate-x-12';
 
         return (

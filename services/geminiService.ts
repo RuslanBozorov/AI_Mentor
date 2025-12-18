@@ -5,10 +5,9 @@ import { UserProfile, LessonContent, TaskResponse } from "../types";
 const MODEL_TEXT = 'gemini-3-flash-preview';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
-// Initialize Gemini client strictly with process.env.API_KEY as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const generateLesson = async (user: UserProfile, isExam: boolean = false): Promise<LessonContent> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const prompt = `
     Generate an English lesson step for a student.
     Level: ${user.currentLevel}
@@ -61,12 +60,12 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
       }
     });
 
-    const lesson = JSON.parse(response.text);
+    const lesson = JSON.parse(response.text || "{}");
     if (isExam) lesson.isExam = true;
     return lesson;
   } catch (error: any) {
     if (error.message?.includes("429")) {
-      throw new Error("QUOTA_EXCEEDED: API limiti tugadi. Iltimos, bir ozdan so'ng qayta urinib ko'ring.");
+      throw new Error("API limiti tugadi (429). Birozdan so'ng qayta urinib ko'ring.");
     }
     throw error;
   }
@@ -77,6 +76,8 @@ export const evaluateTask = async (
   lesson: LessonContent, 
   userAnswer: string
 ): Promise<TaskResponse> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   const prompt = `
     Evaluate student's choice for: "${lesson.task.question}".
     Selected Choice: "${userAnswer}"
@@ -110,16 +111,15 @@ export const evaluateTask = async (
       }
     });
 
-    return JSON.parse(response.text);
+    return JSON.parse(response.text || "{}");
   } catch (error: any) {
     if (error.message?.includes("429")) {
-      throw new Error("QUOTA_EXCEEDED: API limiti tugadi.");
+      throw new Error("API limiti tugadi (429).");
     }
     throw error;
   }
 };
 
-// Internal decode functions as per guidelines
 const decodeBase64 = (base64: string) => {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -151,6 +151,7 @@ const decodeAudioData = async (
 
 export const speakText = async (text: string) => {
   if (!text) return;
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -182,10 +183,6 @@ export const speakText = async (text: string) => {
     source.connect(audioCtx.destination);
     source.start(0);
   } catch (e: any) {
-    if (e.message?.includes("429")) {
-      console.warn("TTS Quota Exceeded (429). Skipping audio playback.");
-    } else {
-      console.error("TTS Error:", e);
-    }
+    console.warn("TTS playback error:", e);
   }
 };
