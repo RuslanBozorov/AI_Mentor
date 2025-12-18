@@ -5,8 +5,16 @@ import { UserProfile, LessonContent, TaskResponse } from "../types";
 const MODEL_TEXT = 'gemini-3-flash-preview';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
+// API kalitini xavfsiz olish
+const getApiKey = () => {
+  return process.env.API_KEY || (window as any).API_KEY;
+};
+
 export const generateLesson = async (user: UserProfile, isExam: boolean = false): Promise<LessonContent> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("API_KEY topilmadi. Vercel Environment Variables bo'limini tekshiring.");
+
+  const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `
     Generate an English lesson step for a student.
@@ -16,58 +24,59 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
     Lesson Step: ${user.currentTaskIndex + 1} of 5.
 
     CRITICAL RULE: This app is TEST-BASED. 
-    Even for Writing or Speaking goals, the student MUST NOT type. 
-    Instead, provide 4 options for the student to select from.
-    
-    - If Goal is Speaking: The task should be "Listen to the audio (in your mind or the provided prompt) and choose the correctly spelled/pronounced response from the options."
-    - If Goal is Writing: "Choose the sentence with correct grammar/punctuation from the options."
-    - If Goal is Vocabulary: "Choose the correct translation/meaning."
-    
-    You MUST provide exactly 4 distinct options in the 'options' array.
+    Provide 4 options for the student to select from. No typing.
     Explanation should be soft, samimiy (Uzbek style), and encouraging.
+    You MUST provide exactly 4 distinct options in the 'options' array.
   `;
 
-  const response = await ai.models.generateContent({
-    model: MODEL_TEXT,
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          explanation: { type: Type.STRING },
-          isExam: { type: Type.BOOLEAN },
-          examples: { 
-            type: Type.ARRAY, 
-            items: { 
-              type: Type.OBJECT, 
-              properties: {
-                original: { type: Type.STRING },
-                translation: { type: Type.STRING }
-              },
-              required: ["original", "translation"]
-            } 
-          },
-          task: {
-            type: Type.OBJECT,
-            properties: {
-              taskType: { type: Type.STRING, description: "Must be 'mcq' to ensure selection-based interaction" },
-              question: { type: Type.STRING },
-              options: { type: Type.ARRAY, items: { type: Type.STRING } },
-              audioPrompt: { type: Type.STRING }
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_TEXT,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            explanation: { type: Type.STRING },
+            isExam: { type: Type.BOOLEAN },
+            examples: { 
+              type: Type.ARRAY, 
+              items: { 
+                type: Type.OBJECT, 
+                properties: {
+                  original: { type: Type.STRING },
+                  translation: { type: Type.STRING }
+                },
+                required: ["original", "translation"]
+              } 
             },
-            required: ["taskType", "question", "options"]
-          }
-        },
-        required: ["title", "explanation", "examples", "task"]
+            task: {
+              type: Type.OBJECT,
+              properties: {
+                taskType: { type: Type.STRING },
+                question: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                audioPrompt: { type: Type.STRING }
+              },
+              required: ["taskType", "question", "options"]
+            }
+          },
+          required: ["title", "explanation", "examples", "task"]
+        }
       }
-    }
-  });
+    });
 
-  const lesson = JSON.parse(response.text);
-  if (isExam) lesson.isExam = true;
-  return lesson;
+    const lesson = JSON.parse(response.text);
+    if (isExam) lesson.isExam = true;
+    return lesson;
+  } catch (error: any) {
+    if (error.message?.includes("429")) {
+      throw new Error("QUOTA_EXCEEDED: API limiti tugadi. Iltimos, bir ozdan so'ng qayta urinib ko'ring.");
+    }
+    throw error;
+  }
 };
 
 export const evaluateTask = async (
@@ -75,48 +84,56 @@ export const evaluateTask = async (
   lesson: LessonContent, 
   userAnswer: string
 ): Promise<TaskResponse> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
     Evaluate student's choice for: "${lesson.task.question}".
     Selected Choice: "${userAnswer}"
     Level: ${user.currentLevel}
     Goal: ${user.goal}
+    Response language: ${user.language}
     
-    IMPORTANT: 
-    - Set 'success' to true ONLY if they chose the correct option.
-    - Give 10 coins for correct, 2 for incorrect.
-    - Explain WHY it's correct or incorrect.
+    IMPORTANT: Give 10 coins for correct choice. Explain the logic in a friendly way.
   `;
 
-  const response = await ai.models.generateContent({
-    model: MODEL_TEXT,
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          feedback: { type: Type.STRING },
-          mistakes: { type: Type.ARRAY, items: { type: Type.STRING } },
-          reason: { type: Type.STRING },
-          coins: { type: Type.INTEGER },
-          motivation: { type: Type.STRING },
-          next_task: { type: Type.STRING },
-          passedExam: { type: Type.BOOLEAN },
-          success: { type: Type.BOOLEAN }
-        },
-        required: ["feedback", "mistakes", "reason", "coins", "motivation", "next_task", "success"]
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_TEXT,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            feedback: { type: Type.STRING },
+            mistakes: { type: Type.ARRAY, items: { type: Type.STRING } },
+            reason: { type: Type.STRING },
+            coins: { type: Type.INTEGER },
+            motivation: { type: Type.STRING },
+            next_task: { type: Type.STRING },
+            passedExam: { type: Type.BOOLEAN },
+            success: { type: Type.BOOLEAN }
+          },
+          required: ["feedback", "mistakes", "reason", "coins", "motivation", "next_task", "success"]
+        }
       }
-    }
-  });
+    });
 
-  return JSON.parse(response.text);
+    return JSON.parse(response.text);
+  } catch (error: any) {
+    if (error.message?.includes("429")) {
+      throw new Error("QUOTA_EXCEEDED: API limiti tugadi.");
+    }
+    throw error;
+  }
 };
 
 export const speakText = async (text: string) => {
   if (!text) return;
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
+  
   try {
     const response = await ai.models.generateContent({
       model: MODEL_TTS,
@@ -148,7 +165,11 @@ export const speakText = async (text: string) => {
     source.buffer = buffer;
     source.connect(audioCtx.destination);
     source.start(0);
-  } catch (e) {
-    console.error("TTS Error:", e);
+  } catch (e: any) {
+    if (e.message?.includes("429")) {
+      console.warn("TTS Quota Exceeded (429). Skipping audio playback.");
+    } else {
+      console.error("TTS Error:", e);
+    }
   }
 };
