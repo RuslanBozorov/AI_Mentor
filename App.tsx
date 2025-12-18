@@ -12,7 +12,7 @@ import Shop from './components/Shop';
 import Roadmap from './components/Roadmap';
 import AIAssistant from './components/AIAssistant';
 import { generateLesson, evaluateTask } from './services/geminiService';
-import { Trophy, Settings, Coins, ShoppingBag, GraduationCap, Map, Sparkles, AlertTriangle, RefreshCcw, Key } from 'lucide-react';
+import { Trophy, Settings, Coins, ShoppingBag, GraduationCap, Map, AlertTriangle, RefreshCcw, Key } from 'lucide-react';
 
 const TASKS_PER_LESSON = 5;
 
@@ -27,7 +27,6 @@ const App: React.FC = () => {
   const [assistantMsg, setAssistantMsg] = useState("Salom! Bugun nimani o'rganamiz?");
   const [currentNode, setCurrentNode] = useState<RoadmapNode | null>(null);
 
-  // API Key strictly from process.env.API_KEY
   const apiKey = process.env.API_KEY;
 
   useEffect(() => {
@@ -139,7 +138,7 @@ const App: React.FC = () => {
           <h2 className="text-3xl font-black text-gray-900 leading-tight">Sozlash kerak!</h2>
           <div className="space-y-4 text-left">
             <p className="text-gray-600 font-medium text-sm">
-              Vercel Settings {"\u2192"} Environment Variables bo'limiga API_KEY qo'shing.
+              Vercel Settings {"\u2192"} Environment Variables bo{"'"}limiga API_KEY qo{"'"}shing.
             </p>
             <div className="bg-slate-50 p-4 rounded-2xl text-[10px] font-mono text-slate-500 border border-slate-100">
               1. Project Settings<br />

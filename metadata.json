@@ -1,5 +1,5 @@
 {
-  "name": "Uzbek AI Mentor",
+  "name": "Mentor AI",
   "description": "An AI-powered English tutor with interactive lessons, mistake analysis, and gamified learning using coins and voice support.",
   "requestFramePermissions": [
     "microphone"

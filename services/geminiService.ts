@@ -2,12 +2,12 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { UserProfile, LessonContent, TaskResponse } from "../types";
 
-const MODEL_TEXT = 'gemini-3-flash-preview';
+// 'gemini-flash-lite-latest' modeli bepul tarifda eng yuqori limitlarga ega
+const MODEL_TEXT = 'gemini-flash-lite-latest';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
 export const generateLesson = async (user: UserProfile, isExam: boolean = false): Promise<LessonContent> => {
-  // Use process.env.API_KEY directly as required by instructions
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   const prompt = `
     Generate an English lesson step for a student.
@@ -66,7 +66,7 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
     return lesson;
   } catch (error: any) {
     if (error.message?.includes("429")) {
-      throw new Error("API limiti tugadi (429). Iltimos, birozdan so'ng qayta urinib ko'ring.");
+      throw new Error("Limit tugadi (429). Iltimos, 1 daqiqadan so'ng qayta urinib ko'ring yoki Billingni yoqing.");
     }
     throw error;
   }
@@ -77,7 +77,7 @@ export const evaluateTask = async (
   lesson: LessonContent, 
   userAnswer: string
 ): Promise<TaskResponse> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
   const prompt = `
     Evaluate student's choice for: "${lesson.task.question}".
@@ -115,7 +115,7 @@ export const evaluateTask = async (
     return JSON.parse(result.text || "{}");
   } catch (error: any) {
     if (error.message?.includes("429")) {
-      throw new Error("API limiti tugadi (429).");
+      throw new Error("Limit tugadi (429).");
     }
     throw error;
   }
@@ -152,7 +152,7 @@ const decodeAudioData = async (
 
 export const speakText = async (text: string) => {
   if (!text) return;
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   try {
     const response = await ai.models.generateContent({
@@ -184,6 +184,6 @@ export const speakText = async (text: string) => {
     source.connect(audioCtx.destination);
     source.start(0);
   } catch (e: any) {
-    console.warn("TTS xatosi boshqarildi.");
+    console.warn("TTS xatosi.");
   }
 };
