@@ -5,17 +5,10 @@ import { UserProfile, LessonContent, TaskResponse } from "../types";
 const MODEL_TEXT = 'gemini-3-flash-preview';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
-// API kalitini xavfsiz olish
-const getApiKey = () => {
-  return process.env.API_KEY || (window as any).API_KEY;
-};
+// Initialize Gemini client strictly with process.env.API_KEY as per guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateLesson = async (user: UserProfile, isExam: boolean = false): Promise<LessonContent> => {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error("API_KEY topilmadi. Vercel Environment Variables bo'limini tekshiring.");
-
-  const ai = new GoogleGenAI({ apiKey });
-  
   const prompt = `
     Generate an English lesson step for a student.
     Level: ${user.currentLevel}
@@ -84,9 +77,6 @@ export const evaluateTask = async (
   lesson: LessonContent, 
   userAnswer: string
 ): Promise<TaskResponse> => {
-  const apiKey = getApiKey();
-  const ai = new GoogleGenAI({ apiKey });
-
   const prompt = `
     Evaluate student's choice for: "${lesson.task.question}".
     Selected Choice: "${userAnswer}"
@@ -129,10 +119,38 @@ export const evaluateTask = async (
   }
 };
 
+// Internal decode functions as per guidelines
+const decodeBase64 = (base64: string) => {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+};
+
+const decodeAudioData = async (
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> => {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+};
+
 export const speakText = async (text: string) => {
   if (!text) return;
-  const apiKey = getApiKey();
-  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const response = await ai.models.generateContent({
@@ -152,17 +170,15 @@ export const speakText = async (text: string) => {
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-    const binaryString = atob(base64Audio);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-
-    const dataInt16 = new Int16Array(bytes.buffer);
-    const buffer = audioCtx.createBuffer(1, dataInt16.length, 24000);
-    const channelData = buffer.getChannelData(0);
-    for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
+    const audioBuffer = await decodeAudioData(
+      decodeBase64(base64Audio),
+      audioCtx,
+      24000,
+      1,
+    );
 
     const source = audioCtx.createBufferSource();
-    source.buffer = buffer;
+    source.buffer = audioBuffer;
     source.connect(audioCtx.destination);
     source.start(0);
   } catch (e: any) {
