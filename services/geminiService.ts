@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { UserProfile, LessonContent, TaskResponse } from "../types";
 
-// 'gemini-flash-lite-latest' modeli bepul tarifda eng yuqori limitlarga ega
+// 'gemini-flash-lite-latest' modeli bepul tarifda eng yuqori limitlarga va barqarorlikka ega
 const MODEL_TEXT = 'gemini-flash-lite-latest';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
@@ -10,16 +10,14 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   const prompt = `
-    Generate an English lesson step for a student.
-    Level: ${user.currentLevel}
-    Focused Skill/Goal: ${user.goal}
-    Language: ${user.language}
-    Lesson Step: ${user.currentTaskIndex + 1} of 5.
-
-    CRITICAL RULE: This app is TEST-BASED. 
-    Provide 4 options for the student to select from. No typing.
-    Explanation should be soft, samimiy (Uzbek style), and encouraging.
-    You MUST provide exactly 4 distinct options in the 'options' array.
+    Sen AI English Tutorsan. Foydalanuvchi darajasi: ${user.currentLevel}, Maqsadi: ${user.goal}.
+    Til: ${user.language}. Dars raqami: ${user.currentTaskIndex + 1}/5.
+    
+    Qoidalarni qat'iy bajar:
+    1. Soft Uzbek (samimiy) tilda tushuntir.
+    2. Masala faqat TEST (mcq) formatida bo'lsin.
+    3. Exactly 4 ta variant (options) ber.
+    4. Agar isExam bo'lsa, savollarni qiyinroq qil.
   `;
 
   try {
@@ -33,7 +31,6 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
           properties: {
             title: { type: Type.STRING },
             explanation: { type: Type.STRING },
-            isExam: { type: Type.BOOLEAN },
             examples: { 
               type: Type.ARRAY, 
               items: { 
@@ -41,8 +38,7 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
                 properties: {
                   original: { type: Type.STRING },
                   translation: { type: Type.STRING }
-                },
-                required: ["original", "translation"]
+                }
               } 
             },
             task: {
@@ -52,23 +48,16 @@ export const generateLesson = async (user: UserProfile, isExam: boolean = false)
                 question: { type: Type.STRING },
                 options: { type: Type.ARRAY, items: { type: Type.STRING } },
                 audioPrompt: { type: Type.STRING }
-              },
-              required: ["taskType", "question", "options"]
+              }
             }
-          },
-          required: ["title", "explanation", "examples", "task"]
+          }
         }
       }
     });
 
-    const lesson = JSON.parse(result.text || "{}");
-    if (isExam) lesson.isExam = true;
-    return lesson;
+    return JSON.parse(result.text || "{}");
   } catch (error: any) {
-    if (error.message?.includes("429")) {
-      throw new Error("Limit tugadi (429). Iltimos, 1 daqiqadan so'ng qayta urinib ko'ring yoki Billingni yoqing.");
-    }
-    throw error;
+    throw new Error("Dars yuklashda xatolik: " + error.message);
   }
 };
 
@@ -80,13 +69,10 @@ export const evaluateTask = async (
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
   const prompt = `
-    Evaluate student's choice for: "${lesson.task.question}".
-    Selected Choice: "${userAnswer}"
-    Level: ${user.currentLevel}
-    Goal: ${user.goal}
-    Response language: ${user.language}
-    
-    IMPORTANT: Give 10 coins for correct choice. Explain the logic in a friendly way.
+    Talaba javobini tekshir: "${userAnswer}". Savol: "${lesson.task.question}".
+    Javob to'g'ri bo'lsa 10 coin ber, xato bo'lsa 2 coin.
+    Samimiy fikr bildir (soft Uzbek). Xato sababini chuqur tushuntir.
+    Format: JSON.
   `;
 
   try {
@@ -104,20 +90,15 @@ export const evaluateTask = async (
             coins: { type: Type.INTEGER },
             motivation: { type: Type.STRING },
             next_task: { type: Type.STRING },
-            passedExam: { type: Type.BOOLEAN },
             success: { type: Type.BOOLEAN }
-          },
-          required: ["feedback", "mistakes", "reason", "coins", "motivation", "next_task", "success"]
+          }
         }
       }
     });
 
     return JSON.parse(result.text || "{}");
   } catch (error: any) {
-    if (error.message?.includes("429")) {
-      throw new Error("Limit tugadi (429).");
-    }
-    throw error;
+    throw new Error("Tekshirishda xatolik.");
   }
 };
 
