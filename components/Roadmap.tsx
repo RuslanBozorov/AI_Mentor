@@ -57,14 +57,14 @@ const Roadmap: React.FC<RoadmapProps> = ({ user, onNodeClick }) => {
       <div className="absolute top-0 bottom-0 left-1/2 w-2 bg-slate-200 -translate-x-1/2 rounded-full z-0 opacity-50" />
 
       {nodes.map((node, index) => {
-        const isCompleted = (user.lessonsCompleted > index);
-        const isActive = (user.lessonsCompleted === index);
-        const isLocked = (index > user.lessonsCompleted);
-
-        const xOffset = (index % 2 === 0) ? '-translate-x-12' : 'translate-x-12';
+        // Evaluate logic outside JSX tags
+        const isCompleted = user.lessonsCompleted > index;
+        const isActive = user.lessonsCompleted === index;
+        const isLocked = index > user.lessonsCompleted;
+        const xOffsetClass = (index % 2 === 0) ? '-translate-x-12' : 'translate-x-12';
 
         return (
-          <div key={node.id} className={`relative flex flex-col items-center z-10 ${xOffset} transition-all duration-500`}>
+          <div key={node.id} className={`relative flex flex-col items-center z-10 ${xOffsetClass} transition-all duration-500`}>
             <button
               disabled={isLocked}
               onClick={() => onNodeClick(node)}

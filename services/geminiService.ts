@@ -6,6 +6,7 @@ const MODEL_TEXT = 'gemini-3-flash-preview';
 const MODEL_TTS = 'gemini-2.5-flash-preview-tts';
 
 export const generateLesson = async (user: UserProfile, isExam: boolean = false): Promise<LessonContent> => {
+  // Use process.env.API_KEY directly as required
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   const prompt = `

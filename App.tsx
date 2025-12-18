@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserProfile, LessonContent, TaskResponse, EnglishLevel, RoadmapNode } from './types';
+import { UserProfile, LessonContent, TaskResponse, RoadmapNode } from './types';
 import Auth from './components/Auth';
 import Onboarding from './components/Onboarding';
 import LessonCard from './components/LessonCard';
@@ -27,6 +27,7 @@ const App: React.FC = () => {
   const [assistantMsg, setAssistantMsg] = useState("Salom! Bugun nimani o'rganamiz?");
   const [currentNode, setCurrentNode] = useState<RoadmapNode | null>(null);
 
+  // Strictly using process.env.API_KEY as per instructions
   const apiKey = process.env.API_KEY;
 
   useEffect(() => {
@@ -52,8 +53,11 @@ const App: React.FC = () => {
     const allUsersJson = localStorage.getItem('ai_tutor_all_users') || '[]';
     let allUsers: UserProfile[] = JSON.parse(allUsersJson);
     const index = allUsers.findIndex(u => u.id === updatedUser.id);
-    if (index > -1) allUsers[index] = updatedUser;
-    else allUsers.push(updatedUser);
+    if (index > -1) {
+      allUsers[index] = updatedUser;
+    } else {
+      allUsers.push(updatedUser);
+    }
     localStorage.setItem('ai_tutor_all_users', JSON.stringify(allUsers));
 
     if (resetLesson) {
@@ -135,7 +139,7 @@ const App: React.FC = () => {
           <h2 className="text-3xl font-black text-gray-900 leading-tight">Sozlash kerak!</h2>
           <div className="space-y-4 text-left">
             <p className="text-gray-600 font-medium text-sm">
-              Vercel Settings {"->"} Environment Variables bo'limiga API_KEY qo'shing.
+              Vercel Settings {"\u2192"} Environment Variables bo'limiga API_KEY qo'shing.
             </p>
             <div className="bg-slate-50 p-4 rounded-2xl text-[10px] font-mono text-slate-500 border border-slate-100">
               1. Project Settings<br/>
@@ -206,7 +210,7 @@ const App: React.FC = () => {
         {activeTab === 'roadmap' && !lesson && (
           <div className="space-y-10 animate-in fade-in slide-in-from-top-4 duration-700">
             <div className="text-center space-y-2">
-              <h2 className="text-5xl font-black text-gray-900 tracking-tighter">O'quv Yo'li</h2>
+              <h2 className="text-5xl font-black text-gray-900 tracking-tighter">O{"'"}quv Yo{"'"}li</h2>
               <p className="text-indigo-600 font-black text-lg bg-indigo-50 inline-block px-6 py-2 rounded-full border border-indigo-100">{user.goal}</p>
             </div>
             <Roadmap user={user} onNodeClick={startNode} />
@@ -216,7 +220,7 @@ const App: React.FC = () => {
         {lesson && (
           <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-500 max-w-2xl mx-auto">
              <div className="flex items-center justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                <button onClick={() => {setLesson(null); setCurrentNode(null); setError(null);}} className="text-indigo-600 font-black hover:bg-indigo-50 px-4 py-2 rounded-2xl transition">{"←"} Chiqish</button>
+                <button onClick={() => {setLesson(null); setCurrentNode(null); setError(null);}} className="text-indigo-600 font-black hover:bg-indigo-50 px-4 py-2 rounded-2xl transition">{"\u2190"} Chiqish</button>
                 <div className="flex-1 mx-6">
                    <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200 p-0.5">
                       <div className="h-full bg-indigo-600 transition-all duration-700 rounded-full" style={{width: `${(user.currentTaskIndex / TASKS_PER_LESSON) * 100}%`}} />
